@@ -41,11 +41,12 @@ function showMessage($type, $message) {
     echo "<div class='alert $class'>$message</div>";
 }
 
-// جلب الوجبات من قاعدة البيانات
+// جلب الوجبات من قاعدة البيانات مع الفلترة
 function getMeals($conn, $filter = 'all') {
     if ($filter == 'all') {
         $query = "SELECT * FROM meals ORDER BY id";
     } else {
+        $filter = sanitize($filter);
         $query = "SELECT * FROM meals WHERE type = '$filter' ORDER BY id";
     }
     $result = mysqli_query($conn, $query);
@@ -56,11 +57,12 @@ function getMeals($conn, $filter = 'all') {
     return $meals;
 }
 
-// جلب التمارين من قاعدة البيانات
+// جلب التمارين من قاعدة البيانات مع الفلترة
 function getExercises($conn, $filter = 'all') {
     if ($filter == 'all') {
         $query = "SELECT * FROM exercises ORDER BY id";
     } else {
+        $filter = sanitize($filter);
         $query = "SELECT * FROM exercises WHERE type = '$filter' ORDER BY id";
     }
     $result = mysqli_query($conn, $query);
@@ -70,7 +72,6 @@ function getExercises($conn, $filter = 'all') {
     }
     return $exercises;
 }
-
 // دالة لتسجيل الدخول التلقائي (اختياري)
 function autoLogin($email, $password) {
     global $conn;
