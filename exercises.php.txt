@@ -1,0 +1,106 @@
+<?php
+require_once 'config.php';
+
+if (!isLoggedIn()) {
+    redirect('index.php');
+}
+
+// جلب التمارين من قاعدة البيانات
+$filter = isset($_GET['filter']) ? $_GET['filter'] : 'all';
+$exercises = getExercises($conn, $filter);
+
+// تعريف أنواع التمارين للعرض
+$typeLabels = [
+    'cardio' => 'كارديو',
+    'strength' => 'قوة',
+    'flexibility' => 'مرونة'
+];
+
+// جلب عدد التمارين لكل نوع
+$counts = [];
+$types = ['all', 'cardio', 'strength', 'flexibility'];
+foreach ($types as $type) {
+    $count_query = "SELECT COUNT(*) as count FROM exercises" . ($type != 'all' ? " WHERE type = '$type'" : "");
+    $count_result = mysqli_query($conn, $count_query);
+    $counts[$type] = mysqli_fetch_assoc($count_result)['count'];
+}
+?>
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>التمارين - Healthy Life</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <i class="fas fa-heartbeat"></i> Healthy Life
+            </div>
+            <div class="nav-links">
+                <a href="dashboard.php"><i class="fas fa-home"></i> الرئيسية</a>
+                <a href="meals.php"><i class="fas fa-utensils"></i> الوجبات</a>
+                <a href="exercises.php" class="active"><i class="fas fa-dumbbell"></i> التمارين</a>
+                <a href="logout.php"><i class="fas fa-sign-out-alt"></i> تسجيل خروج</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="main-content">
+        <h1 class="page-title"><i class="fas fa-dumbbell"></i> تمارين اليوم</h1>
+        
+        <!-- أزرار الفلترة -->
+        <div class="exercise-filters">
+            <a href="?filter=all" class="filter-btn <?php echo $filter == 'all' ? 'active' : ''; ?>">
+                الكل (<?php echo $counts['all']; ?>)
+            </a>
+            <a href="?filter=cardio" class="filter-btn <?php echo $filter == 'cardio' ? 'active' : ''; ?>">
+                كارديو (<?php echo $counts['cardio']; ?>)
+            </a>
+            <a href="?filter=strength" class="filter-btn <?php echo $filter == 'strength' ? 'active' : ''; ?>">
+                قوة (<?php echo $counts['strength']; ?>)
+            </a>
+            <a href="?filter=flexibility" class="filter-btn <?php echo $filter == 'flexibility' ? 'active' : ''; ?>">
+                مرونة (<?php echo $counts['flexibility']; ?>)
+            </a>
+        </div>
+
+        <!-- عرض التمارين -->
+        <div class="exercises-grid">
+            <?php if (count($exercises) > 0): ?>
+                <?php foreach ($exercises as $exercise): ?>
+                    <div class="exercise-card">
+                        <div class="exercise-image"><?php echo $exercise['image_icon']; ?></div>
+                        <div class="exercise-info">
+                            <h3><?php echo htmlspecialchars($exercise['name']); ?></h3>
+                            <p><?php echo htmlspecialchars($exercise['description']); ?></p>
+                            <span class="exercise-tag"><?php echo $typeLabels[$exercise['type']] ?? $exercise['type']; ?></span>
+                            <span style="margin-right:10px;color:#3498db;">⏱ <?php echo $exercise['duration']; ?></span>
+                            <span style="color:#f39c12;">⭐ <?php echo $exercise['difficulty']; ?></span>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <p style="grid-column: 1/-1; text-align: center; padding: 40px; color: #7f8c8d; font-size: 18px;">
+                    <i class="fas fa-info-circle"></i> لا توجد تمارين في هذا التصنيف
+                </p>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <p>© 2026 Healthy Life - جميع الحقوق محفوظة</p>
+            <div class="footer-social">
+                <i class="fab fa-facebook"></i>
+                <i class="fab fa-instagram"></i>
+                <i class="fab fa-twitter"></i>
+                <i class="fab fa-youtube"></i>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

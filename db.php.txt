@@ -1,0 +1,91 @@
+<?php
+// ====== إعدادات قاعدة البيانات ======
+define('DB_HOST', 'localhost');
+define('DB_USER', 'root');        // اتركها root في XAMPP
+define('DB_PASS', '');            // اتركها فارغة في XAMPP
+define('DB_NAME', 'healthy_life_db');
+
+// ====== إنشاء الاتصال ======
+$conn = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+
+// التحقق من الاتصال
+if (!$conn) {
+    die("فشل الاتصال بقاعدة البيانات: " . mysqli_connect_error());
+}
+
+// ====== بدء الجلسة ======
+session_start();
+
+// ====== دوال مساعدة ======
+
+// التحقق من تسجيل الدخول
+function isLoggedIn() {
+    return isset($_SESSION['user_id']);
+}
+
+// إعادة التوجيه إلى صفحة معينة
+function redirect($page) {
+    header("Location: $page");
+    exit();
+}
+
+// تنظيف المدخلات وحمايتها من SQL Injection
+function sanitize($input) {
+    global $conn;
+    return mysqli_real_escape_string($conn, htmlspecialchars(trim($input)));
+}
+
+// عرض رسائل الخطأ أو النجاح
+function showMessage($type, $message) {
+    $class = ($type == 'error') ? 'alert-error' : 'alert-success';
+    echo "<div class='alert $class'>$message</div>";
+}
+
+// جلب الوجبات من قاعدة البيانات
+function getMeals($conn, $filter = 'all') {
+    if ($filter == 'all') {
+        $query = "SELECT * FROM meals ORDER BY id";
+    } else {
+        $query = "SELECT * FROM meals WHERE type = '$filter' ORDER BY id";
+    }
+    $result = mysqli_query($conn, $query);
+    $meals = [];
+    while ($row = mysqli_fetch_assoc($result)) {
+        $meals[] = $row;
+    }
+    return $meals;
+}
+
+// جلب التمارين من قاعدة البيانات
+function getExercises($conn, $filter = 'all') {
+    if ($filter == 'all') {
+        $query = "SELECT * FROM exercises ORDER BY id";
+    } else {
+        $query = "SELECT * FROM exercises WHERE type = '$filter' ORDER BY id";
+    }
+    $result = mysqli_query($conn, $query);
+    $exercises = [];
+    while ($row = mysqli_fetch_assoc($result)) {
+        $exercises[] = $row;
+    }
+    return $exercises;
+}
+
+// دالة لتسجيل الدخول التلقائي (اختياري)
+function autoLogin($email, $password) {
+    global $conn;
+    $query = "SELECT id, name, email, password FROM users WHERE email = '$email'";
+    $result = mysqli_query($conn, $query);
+    
+    if ($result && mysqli_num_rows($result) > 0) {
+        $user = mysqli_fetch_assoc($result);
+        if (password_verify($password, $user['password'])) {
+            $_SESSION['user_id'] = $user['id'];
+            $_SESSION['user_name'] = $user['name'];
+            $_SESSION['user_email'] = $user['email'];
+            return true;
+        }
+    }
+    return false;
+}
+?>

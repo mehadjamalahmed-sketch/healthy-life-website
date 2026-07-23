@@ -1,0 +1,109 @@
+<?php
+require_once 'config.php';
+
+if (!isLoggedIn()) {
+    redirect('index.php');
+}
+
+// جلب الوجبات من قاعدة البيانات
+$filter = isset($_GET['filter']) ? $_GET['filter'] : 'all';
+$meals = getMeals($conn, $filter);
+
+// تعريف أنواع الوجبات للعرض
+$typeLabels = [
+    'breakfast' => 'الفطور',
+    'lunch' => 'الغداء',
+    'dinner' => 'العشاء',
+    'snack' => 'وجبة خفيفة'
+];
+
+// جلب عدد الوجبات لكل نوع (للعرض في الأزرار)
+$counts = [];
+$types = ['all', 'breakfast', 'lunch', 'dinner', 'snack'];
+foreach ($types as $type) {
+    $count_query = "SELECT COUNT(*) as count FROM meals" . ($type != 'all' ? " WHERE type = '$type'" : "");
+    $count_result = mysqli_query($conn, $count_query);
+    $counts[$type] = mysqli_fetch_assoc($count_result)['count'];
+}
+?>
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الوجبات - Healthy Life</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <i class="fas fa-heartbeat"></i> Healthy Life
+            </div>
+            <div class="nav-links">
+                <a href="dashboard.php"><i class="fas fa-home"></i> الرئيسية</a>
+                <a href="meals.php" class="active"><i class="fas fa-utensils"></i> الوجبات</a>
+                <a href="exercises.php"><i class="fas fa-dumbbell"></i> التمارين</a>
+                <a href="logout.php"><i class="fas fa-sign-out-alt"></i> تسجيل خروج</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="main-content">
+        <h1 class="page-title"><i class="fas fa-utensils"></i> خطط الوجبات الصحية</h1>
+        
+        <!-- أزرار الفلترة -->
+        <div class="meal-filters">
+            <a href="?filter=all" class="filter-btn <?php echo $filter == 'all' ? 'active' : ''; ?>">
+                الكل (<?php echo $counts['all']; ?>)
+            </a>
+            <a href="?filter=breakfast" class="filter-btn <?php echo $filter == 'breakfast' ? 'active' : ''; ?>">
+                الفطور (<?php echo $counts['breakfast']; ?>)
+            </a>
+            <a href="?filter=lunch" class="filter-btn <?php echo $filter == 'lunch' ? 'active' : ''; ?>">
+                الغداء (<?php echo $counts['lunch']; ?>)
+            </a>
+            <a href="?filter=dinner" class="filter-btn <?php echo $filter == 'dinner' ? 'active' : ''; ?>">
+                العشاء (<?php echo $counts['dinner']; ?>)
+            </a>
+            <a href="?filter=snack" class="filter-btn <?php echo $filter == 'snack' ? 'active' : ''; ?>">
+                وجبات خفيفة (<?php echo $counts['snack']; ?>)
+            </a>
+        </div>
+
+        <!-- عرض الوجبات -->
+        <div class="meals-grid">
+            <?php if (count($meals) > 0): ?>
+                <?php foreach ($meals as $meal): ?>
+                    <div class="meal-card">
+                        <div class="meal-image"><?php echo $meal['image_icon']; ?></div>
+                        <div class="meal-info">
+                            <h3><?php echo htmlspecialchars($meal['name']); ?></h3>
+                            <p><?php echo htmlspecialchars($meal['description']); ?></p>
+                            <span class="meal-tag"><?php echo $typeLabels[$meal['type']] ?? $meal['type']; ?></span>
+                            <span class="meal-calories">🔥 <?php echo $meal['calories']; ?> سعرة</span>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <p style="grid-column: 1/-1; text-align: center; padding: 40px; color: #7f8c8d; font-size: 18px;">
+                    <i class="fas fa-info-circle"></i> لا توجد وجبات في هذا التصنيف
+                </p>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <p>© 2026 Healthy Life - جميع الحقوق محفوظة</p>
+            <div class="footer-social">
+                <i class="fab fa-facebook"></i>
+                <i class="fab fa-instagram"></i>
+                <i class="fab fa-twitter"></i>
+                <i class="fab fa-youtube"></i>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

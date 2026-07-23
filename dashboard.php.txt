@@ -1,0 +1,138 @@
+<?php
+require_once 'config.php';
+
+if (!isLoggedIn()) {
+    redirect('index.php');
+}
+
+$user_name = $_SESSION['user_name'];
+
+// جلب إحصائيات من قاعدة البيانات (مثال)
+$total_meals_query = "SELECT COUNT(*) as count FROM meals";
+$total_meals_result = mysqli_query($conn, $total_meals_query);
+$total_meals = mysqli_fetch_assoc($total_meals_result)['count'];
+
+$total_exercises_query = "SELECT COUNT(*) as count FROM exercises";
+$total_exercises_result = mysqli_query($conn, $total_exercises_query);
+$total_exercises = mysqli_fetch_assoc($total_exercises_result)['count'];
+?>
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة التحكم - Healthy Life</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <!-- شريط التنقل -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <i class="fas fa-heartbeat"></i> Healthy Life
+            </div>
+            <div class="nav-links">
+                <a href="dashboard.php" class="active"><i class="fas fa-home"></i> الرئيسية</a>
+                <a href="meals.php"><i class="fas fa-utensils"></i> الوجبات</a>
+                <a href="exercises.php"><i class="fas fa-dumbbell"></i> التمارين</a>
+                <a href="logout.php"><i class="fas fa-sign-out-alt"></i> تسجيل خروج</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- المحتوى الرئيسي -->
+    <div class="main-content">
+        <div class="welcome-section">
+            <h1><i class="fas fa-smile"></i> مرحباً <?php echo htmlspecialchars($user_name); ?></h1>
+            <p>نقدم لك أفضل النصائح والخطط لتحقيق نمط حياة صحي ومتوازن</p>
+        </div>
+
+        <!-- الإحصائيات -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <i class="fas fa-walking"></i>
+                <div class="stat-info">
+                    <h3>خطوات اليوم</h3>
+                    <p id="daily-steps">8,432</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-fire"></i>
+                <div class="stat-info">
+                    <h3>سعرات حرارية</h3>
+                    <p id="daily-calories">1,850</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-bed"></i>
+                <div class="stat-info">
+                    <h3>ساعات النوم</h3>
+                    <p id="daily-sleep">7.5</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-tint"></i>
+                <div class="stat-info">
+                    <h3>شرب الماء</h3>
+                    <p id="daily-water">2.5 لتر</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- إحصائيات إضافية -->
+        <div class="stats-grid" style="margin-top: 20px;">
+            <div class="stat-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                <i class="fas fa-utensils" style="color: white; background: rgba(255,255,255,0.2);"></i>
+                <div class="stat-info">
+                    <h3 style="color: rgba(255,255,255,0.8);">الوجبات المتاحة</h3>
+                    <p style="color: white;"><?php echo $total_meals; ?> وجبة</p>
+                </div>
+            </div>
+            <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white;">
+                <i class="fas fa-dumbbell" style="color: white; background: rgba(255,255,255,0.2);"></i>
+                <div class="stat-info">
+                    <h3 style="color: rgba(255,255,255,0.8);">التمارين المتاحة</h3>
+                    <p style="color: white;"><?php echo $total_exercises; ?> تمرين</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- الإجراءات السريعة -->
+        <div class="quick-actions">
+            <h2><i class="fas fa-bolt"></i> بداية سريعة</h2>
+            <div class="action-grid">
+                <div class="action-card" onclick="window.location.href='meals.php'">
+                    <i class="fas fa-utensils"></i>
+                    <h3>تخطيط الوجبات</h3>
+                    <p>خطط لوجباتك اليومية</p>
+                </div>
+                <div class="action-card" onclick="window.location.href='exercises.php'">
+                    <i class="fas fa-dumbbell"></i>
+                    <h3>تمارين اليوم</h3>
+                    <p>اكتشف تمارين جديدة</p>
+                </div>
+                <div class="action-card">
+                    <i class="fas fa-chart-line"></i>
+                    <h3>تقدمي</h3>
+                    <p>تابع تطورك الصحي</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <p>© 2026 Healthy Life - جميع الحقوق محفوظة</p>
+            <div class="footer-social">
+                <i class="fab fa-facebook"></i>
+                <i class="fab fa-instagram"></i>
+                <i class="fab fa-twitter"></i>
+                <i class="fab fa-youtube"></i>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
